@@ -31,15 +31,4 @@ impl Junction {
     pub fn access_junction(&self) -> MutexGuard<()> {
         self.cross.lock().unwrap()
     }
-
-    pub fn access_neighbour(&self, direction: char) -> MutexGuard<()> {
-        let neighbour = match direction {
-            'N' => 'W',
-            'S' => 'E',
-            'E' => 'N',
-            'W' => 'S',
-            _ => unreachable!(),
-        };
-        self.access_direction(neighbour)
-    }
 }
