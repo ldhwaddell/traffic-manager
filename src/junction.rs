@@ -1,3 +1,4 @@
+use crate::graph::Graph;
 use std::sync::{Mutex, MutexGuard};
 
 pub struct Junction {
@@ -6,6 +7,7 @@ pub struct Junction {
     east: Mutex<()>,
     west: Mutex<()>,
     cross: Mutex<()>,
+    graph: Mutex<Graph>,
 }
 
 impl Junction {
@@ -16,6 +18,7 @@ impl Junction {
             east: Mutex::new(()),
             west: Mutex::new(()),
             cross: Mutex::new(()),
+            graph: Mutex::new(Graph::new()),
         }
     }
     pub fn access_direction(&self, direction: char) -> MutexGuard<()> {
@@ -30,5 +33,9 @@ impl Junction {
 
     pub fn access_junction(&self) -> MutexGuard<()> {
         self.cross.lock().unwrap()
+    }
+
+    pub fn access_graph(&self) -> MutexGuard<Graph> {
+        self.graph.lock().unwrap()
     }
 }
