@@ -19,6 +19,7 @@ fn main() {
     // Run the manager
     manager.start().unwrap_or_else(|err| {
         eprintln!("Problem running manager: {err}");
+        manager.junction.access_graph().display();
         process::exit(1)
     });
 }
