@@ -1,6 +1,5 @@
 use crate::arguments::Arguments;
 use crate::bus::Bus;
-use crate::graph::Graph;
 use crate::junction::Junction;
 use rand::Rng;
 use std::error::Error;
@@ -12,7 +11,6 @@ pub struct Manager {
     pub probability: f32,
     pub sequence: String,
     pub junction: Arc<Junction>,
-    pub graph: Arc<Graph>,
 }
 
 impl Manager {
@@ -22,7 +20,6 @@ impl Manager {
             probability: args.probability,
             sequence: args.sequence.to_owned(),
             junction: Arc::new(Junction::new()),
-            graph: Arc::new(Graph::new()),
         }
     }
 
@@ -44,33 +41,34 @@ impl Manager {
             // Probability p of checking for deadlock
             if rng.gen_range(0.0..1.0) < self.probability {
                 println!("Checking for deadlock");
-                // if deadlock return error
-                self.graph.check_deadlock()?;
+                self.junction.access_graph().deadlock()?;
             } else if let Some(bus) = buses.next() {
                 // Clone mutex for graph
-                let handle = bus.start(&self.junction, &self.graph);
+                let handle = bus.start(&self.junction);
                 thread_handles.push(handle);
             } else {
                 // Enter main loop to check for deadlock once a second
                 loop {
                     println!("Periodically checking for deadlock...");
-                    self.graph.check_deadlock()?;
+                    self.junction.access_graph().deadlock()?;
 
                     // Check if all threads have finished
                     if thread_handles.iter().all(|handle| handle.is_finished()) {
-                        println!("ALL THREADS FINISHED ");
                         break 'outer;
                     }
 
                     thread::sleep(Duration::from_secs(1));
                 }
             }
+            // Sleep a second to limit thread races
             thread::sleep(Duration::from_secs(1));
         }
 
         for handle in thread_handles {
             handle.join().unwrap();
         }
+
+        println!("Buses finished with no deadlock detected.");
 
         Ok(())
     }
